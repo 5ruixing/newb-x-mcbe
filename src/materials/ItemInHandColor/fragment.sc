@@ -10,36 +10,33 @@ uniform vec4 MatColor;
 uniform vec4 MultiplicativeTintColor;
 
 void main() {
-  #if defined(DEPTH_ONLY) || defined(INSTANCING)
+#if defined(DEPTH_ONLY) || defined(INSTANCING)
     gl_FragColor = vec4(0.0);
     return;
-  #endif
+#endif
 
-  vec4 albedo = vec4(mix(vec3(1.0, 1.0, 1.0), v_color0.rgb, ColorBased.x), 1.0);
+    // 修复点：把 float3 改为 vec3
+    vec4 albedo = vec4(mix(vec3(1.0,1.0,1.0), v_color0.rgb, ColorBased.x), 1.0);
 
-  #ifdef MULTI_COLOR_TINT
+#ifdef MULTI_COLOR_TINT
     albedo = applyMultiColorChange(albedo, ChangeColor.rgb, MultiplicativeTintColor.rgb);
-  #else
+#else
     albedo = applyColorChange(albedo, ChangeColor, albedo.a);
     albedo.a = ChangeColor.a;
-  #endif
+#endif
 
-  albedo = applyOverlayColor(albedo, OverlayColor);
+    albedo = applyOverlayColor(albedo, OverlayColor);
 
-  #ifdef ALPHA_TEST
-    if (albedo.a < 0.5) {
-      discard;
-    }
-  #endif
+#ifdef ALPHA_TEST
+    if (albedo.a < 0.5) discard;
+#endif
 
-  albedo.rgb *= albedo.rgb * v_light.rgb;
+    albedo.rgb *= albedo.rgb * v_light.rgb;
 
-  float glowMask = 1.0 - step(0.2, albedo.a);
-  vec3 emitColor = albedo.rgb * 6.0;
-  albedo.rgb += emitColor * glowMask;
+    float glowMask = 1.0 - step(0.2, albedo.a);
+    albedo.rgb += albedo.rgb * 6.0 * glowMask;
 
-  albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
-  albedo.rgb = colorCorrection(albedo.rgb);
-
-  gl_FragColor = albedo;
+    albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
+    albedo.rgb = colorCorrection(albedo.rgb);
+    gl_FragColor = albedo;
 }
