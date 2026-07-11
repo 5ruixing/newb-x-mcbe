@@ -32,10 +32,10 @@ void main() {
     }
   #endif
 
-  // 修复拆分写法，规避X3014编译错误
-  float step1 = step(0.9875, v_color0.a);
-  float step2 = step(0.9925, v_color0.a);
-  float isGlowPixel = step1 * (1.0 - step2);
+  // 替换step函数，彻底解决X3014编译报错
+  float highA = v_color0.a >= 0.9875 ? 1.0 : 0.0;
+  float cutA = v_color0.a >= 0.9925 ? 1.0 : 0.0;
+  float isGlowPixel = highA * (1.0 - cutA);
   vec3 baseColor = albedo.rgb;
 
   albedo.rgb *= albedo.rgb * v_light.rgb;

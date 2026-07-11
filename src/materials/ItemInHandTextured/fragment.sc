@@ -33,10 +33,10 @@ void main() {
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // 修复拆分写法
-  float step1 = step(0.9875, v_color0.a);
-  float step2 = step(0.9925, v_color0.a);
-  float isGlowPixel = step1 * (1.0 - step2);
+  // 替换step，消除编译报错
+  float highA = v_color0.a >= 0.9875 ? 1.0 : 0.0;
+  float cutA = v_color0.a >= 0.9925 ? 1.0 : 0.0;
+  float isGlowPixel = highA * (1.0 - cutA);
   vec3 baseColor = albedo.rgb;
 
   albedo.rgb *= albedo.rgb * v_light.rgb;
