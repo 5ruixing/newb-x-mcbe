@@ -15,8 +15,9 @@ void main() {
     return;
 #endif
 
-    // 修复点：把 float3 改为 vec3
-    vec4 albedo = vec4(mix(vec3(1.0,1.0,1.0), v_color0.rgb, ColorBased.x), 1.0);
+    // 修正：vec3 替代 float3，规范vec4构造
+    vec3 baseMix = mix(vec3(1.0,1.0,1.0), v_color0.rgb, ColorBased.x);
+    vec4 albedo = vec4(baseMix, 1.0);
 
 #ifdef MULTI_COLOR_TINT
     albedo = applyMultiColorChange(albedo, ChangeColor.rgb, MultiplicativeTintColor.rgb);
