@@ -32,8 +32,17 @@ void main() {
     }
   #endif
 
-  // 社区原版紧凑单行，规避D3D编译器解析bug
-  float isGlowPixel=step(0.9875,v_color0.a)*(1.0-step(0.9925,v_color0.a));
+  // 分支判断替代step，彻底消除X3014报错
+  float isGlowPixel = 0.0;
+  float alphaVal = v_color0.a;
+  if(alphaVal >= 0.9875)
+  {
+      isGlowPixel = 1.0;
+  }
+  if(alphaVal >= 0.9925)
+  {
+      isGlowPixel = 0.0;
+  }
   vec3 baseColor=albedo.rgb;
   albedo.rgb *= albedo.rgb * v_light.rgb;
   vec3 glowColor=baseColor*8.0;
