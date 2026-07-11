@@ -32,17 +32,11 @@ void main() {
     }
   #endif
 
-  // ========== 按透明度筛选发光（仅透明度252附近像素发光） ==========
-  float isGlowPixel = step(0.9875, albedo.a) * (1.0 - step(0.9925, albedo.a));
-  vec3 baseColor = albedo.rgb;
-
-  // 正常光照计算
   albedo.rgb *= albedo.rgb * v_light.rgb;
 
-  // 发光增强：仅对筛选出的像素生效
-  vec3 glowColor = baseColor * 8.0;
-  albedo.rgb = mix(albedo.rgb, glowColor, isGlowPixel);
-  // ========== 发光代码结束 ==========
+  float glowMask = 1.0 - step(0.2, albedo.a);
+  vec3 emitColor = albedo.rgb * 6.0;
+  albedo.rgb += emitColor * glowMask;
 
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
