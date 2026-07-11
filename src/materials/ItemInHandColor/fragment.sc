@@ -32,10 +32,6 @@ void main() {
 #endif
 
     albedo.rgb *= albedo.rgb * v_light.rgb;
-
-    float glowMask = 1.0 - step(0.2, albedo.a);
-    albedo.rgb += albedo.rgb * 6.0 * glowMask;
-
     albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
     albedo.rgb = colorCorrection(albedo.rgb);
     gl_FragColor = albedo;
