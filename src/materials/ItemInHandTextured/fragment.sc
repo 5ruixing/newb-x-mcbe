@@ -31,8 +31,8 @@ void main() {
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
 
-  // Only glow alpha between 0.9875 ~ 0.9925
-  float glowMask = smoothstep(0.9875, 0.9925, albedo.a) - smoothstep(0.9925, 1.0, albedo.a);
+  // Alpha <= 252 glow, fixed brightness
+  float glowMask = 1.0 - step(0.9882, albedo.a);
   albedo.rgb += albedo.rgb * 8.0 * glowMask;
 
   gl_FragColor = albedo;
