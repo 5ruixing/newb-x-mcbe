@@ -15,7 +15,6 @@ void main() {
     return;
 #endif
 
-    // 修正：vec3 替代 float3，规范vec4构造
     vec3 baseMix = mix(vec3(1.0,1.0,1.0), v_color0.rgb, ColorBased.x);
     vec4 albedo = vec4(baseMix, 1.0);
 
