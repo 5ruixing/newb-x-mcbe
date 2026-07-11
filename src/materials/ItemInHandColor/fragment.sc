@@ -32,14 +32,14 @@ void main() {
     }
   #endif
 
-  // 作者原版：用 v_color0.a 判断发光（不是 albedo.a）
-  float isGlowPixel = step(0.9875, v_color0.a) * (1.0 - step(0.9925, v_color0.a));
+  // 修复拆分写法，规避X3014编译错误
+  float step1 = step(0.9875, v_color0.a);
+  float step2 = step(0.9925, v_color0.a);
+  float isGlowPixel = step1 * (1.0 - step2);
   vec3 baseColor = albedo.rgb;
 
-  // 正常光照
   albedo.rgb *= albedo.rgb * v_light.rgb;
 
-  // 发光叠加
   vec3 glowColor = baseColor * 8.0;
   albedo.rgb = mix(albedo.rgb, glowColor, isGlowPixel);
 
