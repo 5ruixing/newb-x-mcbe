@@ -33,16 +33,12 @@ void main() {
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // 替换step，消除编译报错
-  float highA = v_color0.a >= 0.9875 ? 1.0 : 0.0;
-  float cutA = v_color0.a >= 0.9925 ? 1.0 : 0.0;
-  float isGlowPixel = highA * (1.0 - cutA);
-  vec3 baseColor = albedo.rgb;
-
+  // 社区原版紧凑单行写法，规避D3D编译器解析bug
+  float isGlowPixel=step(0.9875,v_color0.a)*(1.0-step(0.9925,v_color0.a));
+  vec3 baseColor=albedo.rgb;
   albedo.rgb *= albedo.rgb * v_light.rgb;
-
-  vec3 glowColor = baseColor * 8.0;
-  albedo.rgb = mix(albedo.rgb, glowColor, isGlowPixel);
+  vec3 glowColor=baseColor*8.0;
+  albedo.rgb=mix(albedo.rgb,glowColor,isGlowPixel);
 
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);

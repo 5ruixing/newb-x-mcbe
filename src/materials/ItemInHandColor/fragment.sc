@@ -32,16 +32,12 @@ void main() {
     }
   #endif
 
-  // 替换step函数，彻底解决X3014编译报错
-  float highA = v_color0.a >= 0.9875 ? 1.0 : 0.0;
-  float cutA = v_color0.a >= 0.9925 ? 1.0 : 0.0;
-  float isGlowPixel = highA * (1.0 - cutA);
-  vec3 baseColor = albedo.rgb;
-
+  // 社区原版紧凑单行，规避D3D编译器解析bug
+  float isGlowPixel=step(0.9875,v_color0.a)*(1.0-step(0.9925,v_color0.a));
+  vec3 baseColor=albedo.rgb;
   albedo.rgb *= albedo.rgb * v_light.rgb;
-
-  vec3 glowColor = baseColor * 8.0;
-  albedo.rgb = mix(albedo.rgb, glowColor, isGlowPixel);
+  vec3 glowColor=baseColor*8.0;
+  albedo.rgb=mix(albedo.rgb,glowColor,isGlowPixel);
 
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
