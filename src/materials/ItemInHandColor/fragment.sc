@@ -29,10 +29,9 @@ void main() {
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
 
-  // 【替换原来发白的4行代码，最小改动，无if无布尔，兼容s_5_0】
   float diff = v_color0.a - 0.99;
   float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  albedo.rgb = mix(albedo.rgb * 4.5, albedo.rgb, mask);
+  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, mask);
 
   gl_FragColor = albedo;
 }
