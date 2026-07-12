@@ -14,31 +14,33 @@ void main() {
     return;
   #endif
   vec4 albedo = MatColor * texture2D(s_MatTexture, v_texcoord0);
+
   #ifdef ALPHA_TEST
     if (albedo.a < 0.5) {
       discard;
     }
   #endif
+
   #ifdef MULTI_COLOR_TINT
     albedo = applyMultiColorChange(albedo, ChangeColor.rgb, MultiplicativeTintColor.rgb);
   #else
     albedo = applyColorChange(albedo, ChangeColor, albedo.a);
   #endif
+
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  float diff = v_color0.a - 0.99;
-  // 加宽区间消除浮点误判
-  float mask = 1.0 - smoothstep(-0.01, 0.01, diff);
-  vec3 base = albedo.rgb;
-
-  // mix(无光发光, 正常光照, mask)
-  // mask=1：发光、无光照；mask=0：正常光照
-  albedo.rgb = mix(base * 4.5, base * base * v_light.rgb, mask);
+  // 恢复原有全局光照，和原版发白代码结构保持一致
+  albedo.rgb *= albedo.rgb * v_light.rgb;
 
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
+
+  // 改用贴图 albedo.a 判断发光，不再读取v_color0.a，解决全物品发光
+  float diff = albedo.a - 0.99;
+  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
+  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, mask);
 
   gl_FragColor = albedo;
 }
