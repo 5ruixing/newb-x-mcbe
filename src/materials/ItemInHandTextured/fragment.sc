@@ -27,7 +27,7 @@ void main() {
   #ifdef MULTI_COLOR_TINT
     albedo = applyMultiColorChange(albedo, ChangeColor.rgb, MultiplicativeTintColor.rgb);
   #else
-    albedo = applyColorChange(albedo, ChangeColor, albedo.a);
+    albedo = applyColorChange(albedo, ChangeColor.rgb, albedo.a);
   #endif
 
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
@@ -39,10 +39,10 @@ void main() {
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
 
-  // 简单阈值：Alpha ≤253(≈0.9922) 就 100% 发光，>253 不发光
+  // 发光倍率从 4.5 降到 2.0（可再调为 1.5/1.8 等）
   float alphaTex = albedo.a;
   float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
-  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, mask);
+  albedo.rgb = mix(albedo.rgb, albedo.rgb * 2.0, mask);
 
   gl_FragColor = albedo;
 }
