@@ -28,10 +28,12 @@ void main() {
   albedo = applyOverlayColor(albedo, OverlayColor);
 
   float diff = v_color0.a - 0.99;
-  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
+  // 加宽区间消除浮点误判
+  float mask = 1.0 - smoothstep(-0.01, 0.01, diff);
   vec3 base = albedo.rgb;
 
-  // 数学等价if else：发光=base*4.5，不发光=base*base*v_light
+  // mix(无光发光, 正常光照, mask)
+  // mask=1：发光、无光照；mask=0：正常光照
   albedo.rgb = mix(base * 4.5, base * base * v_light.rgb, mask);
 
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
