@@ -1,4 +1,5 @@
 $input v_color0, v_fog, v_light, v_texcoord0, v_edgemap
+
 #include <bgfx_shader.sh>
 #include <MinecraftRenderer.Materials/ActorUtil.dragonh>
 #include <newb/main.sh>
@@ -8,6 +9,7 @@ uniform vec4 OverlayColor;
 uniform vec4 ColorBased;
 uniform vec4 MatColor;
 uniform vec4 MultiplicativeTintColor;
+
 SAMPLER2D_AUTOREG(s_MatTexture);
 
 void main() {
@@ -31,26 +33,15 @@ void main() {
   #endif
 
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
+
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // 分支判断，无step、无三元运算符，兼容s_5_0
-  float isGlowPixel = 0.0;
-  float alphaVal = v_color0.a;
-  if(alphaVal >= 0.9875)
-  {
-      isGlowPixel = 1.0;
-  }
-  if(alphaVal >= 0.9925)
-  {
-      isGlowPixel = 0.0;
-  }
-  vec3 baseColor=albedo.rgb;
   albedo.rgb *= albedo.rgb * v_light.rgb;
-  vec3 glowColor=baseColor*8.0;
-  albedo.rgb=mix(albedo.rgb,glowColor,isGlowPixel);
 
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
+
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
+
   albedo.rgb = colorCorrection(albedo.rgb);
 
   gl_FragColor = albedo;
