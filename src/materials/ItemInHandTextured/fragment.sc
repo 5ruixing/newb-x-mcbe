@@ -26,14 +26,19 @@ void main() {
   #endif
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
+
+  // 发光判断提前，在光照计算之前，复刻作者分支逻辑
+  float diff = v_color0.a - 0.99;
+  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
+  vec3 base = albedo.rgb;
+  // 发光像素：先放大4.5，再跳过光照
+  // 不发光像素：正常执行光照
+  albedo.rgb = mix(base * 4.5, base, mask);
   albedo.rgb *= albedo.rgb * v_light.rgb;
+
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
-
-  float diff = v_color0.a - 0.99;
-  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, mask);
 
   gl_FragColor = albedo;
 }
