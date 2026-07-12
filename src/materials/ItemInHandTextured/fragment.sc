@@ -39,14 +39,10 @@ void main() {
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
 
-  // 精准对齐光影原作者逻辑：
-  // 252(0.9882) → 100%发光
-  // 253(0.9922) → 50%发光
-  // ≥254 → 0%发光
+  // 简单阈值：Alpha ≤253(≈0.9922) 就 100% 发光，>253 不发光
   float alphaTex = albedo.a;
-  float t = clamp((alphaTex - 0.9882) / (0.9922 - 0.9882), 0.0, 1.0);
-  float glowFactor = 1.0 - t;
-  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, glowFactor);
+  float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
+  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, mask);
 
   gl_FragColor = albedo;
 }
