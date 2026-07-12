@@ -29,10 +29,10 @@ void main() {
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
 
-  // ========== 新增手持物品自发光（仅新增，不修改原代码） ==========
-  vec3 glowColor = vec3(0.32, 0.38, 0.65); // 发光色调，可自行修改
-  float glowStrength = smoothstep(0.15, 0.95, albedo.a); // 透明度控制发光强弱
-  albedo.rgb += glowColor * glowStrength;
+  // 【替换原来发白的4行代码，最小改动，无if无布尔，兼容s_5_0】
+  float diff = v_color0.a - 0.99;
+  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
+  albedo.rgb = mix(albedo.rgb * 4.5, albedo.rgb, mask);
 
   gl_FragColor = albedo;
 }
