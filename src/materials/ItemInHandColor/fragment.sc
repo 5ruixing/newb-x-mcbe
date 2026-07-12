@@ -34,8 +34,10 @@ void main() {
     }
   #endif
 
-  // 完全拆分判断，不使用float(比较式)，彻底避开编译器bug
-  if (v_color0.a <= 0.99)
+  // 绕开比较表达式直接当if条件，用差值判断规避编译器bug
+  float threshold = 0.99;
+  float diff = v_color0.a - threshold;
+  if (diff <= 0.0)
   {
     albedo.rgb *= 4.5;
   }
