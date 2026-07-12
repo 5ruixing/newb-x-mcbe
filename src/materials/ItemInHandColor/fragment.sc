@@ -34,12 +34,14 @@ void main() {
     }
   #endif
 
-  // 修复bool报错，逻辑完全和作者原版一致
-  float glowFlag = float(v_color0.a <= 0.99);
-  if (glowFlag < 0.5) {
-    albedo.rgb *= albedo.rgb * v_light.rgb;
-  } else {
+  // 完全拆分判断，不使用float(比较式)，彻底避开编译器bug
+  if (v_color0.a <= 0.99)
+  {
     albedo.rgb *= 4.5;
+  }
+  else
+  {
+    albedo.rgb *= albedo.rgb * v_light.rgb;
   }
 
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
