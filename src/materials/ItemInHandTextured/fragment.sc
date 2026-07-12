@@ -30,17 +30,17 @@ void main() {
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // 恢复原有全局光照，和原版发白代码结构保持一致
   albedo.rgb *= albedo.rgb * v_light.rgb;
 
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
 
-  // 改用贴图 albedo.a 判断发光，不再读取v_color0.a，解决全物品发光
-  float diff = albedo.a - 0.99;
-  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, mask);
+  // 对齐作者渐变发光逻辑：252(0.9882)=100%，253(0.9922)=50%，>253=0
+  float alphaTex = albedo.a;
+  // smoothstep(低阈值,高阈值,输入)，输入越小输出越大，实现从1降到0
+  float glowFactor = 1.0 - smoothstep(0.9882, 0.9922, alphaTex);
+  albedo.rgb = mix(albedo.rgb, albedo.rgb * 4.5, glowFactor);
 
   gl_FragColor = albedo;
 }
