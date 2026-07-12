@@ -30,6 +30,6 @@ void main() {
   albedo.rgb = colorCorrection(albedo.rgb);
   float diff = v_color0.a - 0.99;
   float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  albedo.rgb = mix(albedo.rgb, albedo.rgb * 2.0, mask);
+  albedo.rgb = mix(albedo.rgb, albedo.rgb * 3.0, mask);
   gl_FragColor = albedo;
 }

@@ -30,9 +30,8 @@ void main() {
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
-  // 简单阈值：Alpha ≤253(≈0.9922) 就 100% 发光，>253 不发光
   float alphaTex = albedo.a;
   float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
-  albedo.rgb = mix(albedo.rgb, albedo.rgb * 2.0, mask);
+  albedo.rgb = mix(albedo.rgb, albedo.rgb * 3.0, mask);
   gl_FragColor = albedo;
 }
