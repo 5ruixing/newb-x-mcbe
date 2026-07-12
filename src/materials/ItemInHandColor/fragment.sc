@@ -16,7 +16,7 @@ void main() {
   #ifdef MULTI_COLOR_TINT
     albedo = applyMultiColorChange(albedo, ChangeColor.rgb, MultiplicativeTintColor.rgb);
   #else
-    albedo = applyColorChange(albedo, ChangeColor.rgb, albedo.a);
+    albedo = applyColorChange(albedo, ChangeColor, albedo.a);
     albedo.a *= ChangeColor.a;
   #endif
   albedo = applyOverlayColor(albedo, OverlayColor);
@@ -28,11 +28,8 @@ void main() {
   albedo.rgb *= albedo.rgb * v_light.rgb;
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
-
-  // 同步降低发光倍率
-  float alphaTex = v_color0.a;
-  float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
+  float diff = v_color0.a - 0.99;
+  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
   albedo.rgb = mix(albedo.rgb, albedo.rgb * 2.0, mask);
-
   gl_FragColor = albedo;
 }
