@@ -34,14 +34,13 @@ void main() {
     }
   #endif
 
-  bool isGlowing = (v_color0.a <= 0.99);
-
-if (!isGlowing) {
-  albedo.rgb *= albedo.rgb * v_light.rgb;
-} else {
-
-  albedo.rgb *= 4.5;
-}
+  // 修复bool报错，逻辑完全和作者原版一致
+  float glowFlag = float(v_color0.a <= 0.99);
+  if (glowFlag < 0.5) {
+    albedo.rgb *= albedo.rgb * v_light.rgb;
+  } else {
+    albedo.rgb *= 4.5;
+  }
 
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
