@@ -27,16 +27,22 @@ void main() {
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // ✅ 发光逻辑提前到光照之前
-  float alphaTex = albedo.a;
-  float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
-  vec3 baseColor = albedo.rgb;
-  albedo.rgb = mix(baseColor, baseColor * 3.0, mask); // 发光倍率2.0
+  // 保存原始贴图原色，生成不受光照影响的发光层
+  vec3 baseRaw = albedo.rgb;
 
-  albedo.rgb *= albedo.rgb * v_light.rgb; // 环境光照只作用于「已经处理好发光的基础色」
+  // 标准光照、描边、雾、调色流程完整保留
+  albedo.rgb *= albedo.rgb * v_light.rgb;
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
+
+  // 判定逻辑不变：贴图alpha ≤0.9922(253)发光
+  float alphaTex = albedo.a;
+  float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
+  // 独立恒定发光层，不参与环境光乘法
+  vec3 emissive = baseRaw * 1.8 * mask;
+  // 加法叠加，强光环境不会成倍爆亮
+  albedo.rgb += emissive;
 
   gl_FragColor = albedo;
 }

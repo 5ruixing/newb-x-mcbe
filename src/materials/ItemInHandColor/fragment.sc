@@ -26,15 +26,21 @@ void main() {
     }
   #endif
 
-  // ✅ 发光逻辑提前到光照之前，只对「基础颜色」做发光
-  float diff = v_color0.a - 0.99;
-  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  vec3 baseColor = albedo.rgb;
-  albedo.rgb = mix(baseColor, baseColor * 3.0, mask); // 发光倍率仍用2.0
+  // 先保存原始基础色，用于生成独立发光层
+  vec3 baseRaw = albedo.rgb;
 
-  albedo.rgb *= albedo.rgb * v_light.rgb; // 环境光照只作用于「已经处理好发光的基础色」
+  // 完整正常光照流程（所有非发光像素标准渲染）
+  albedo.rgb *= albedo.rgb * v_light.rgb;
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
   albedo.rgb = colorCorrection(albedo.rgb);
+
+  // 发光判定（阈值不变：v_color0.a ≤0.99=252发光）
+  float diff = v_color0.a - 0.99;
+  float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
+  // 独立发光层：只用原始基础色，不乘环境光，固定亮度
+  vec3 emissive = baseRaw * 1.8 * mask;
+  // 加法叠加，不再乘法混合，解决强光过曝
+  albedo.rgb += emissive;
 
   gl_FragColor = albedo;
 }
