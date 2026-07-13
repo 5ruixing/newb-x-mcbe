@@ -26,19 +26,20 @@ void main() {
   #endif
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
-  // 仅252~253区间像素发光，玻璃冰块alpha<252不会触发
+
+  // ✅ 修正后：仅 252(0.9882) ~ 253(0.9922) 发光
   float alphaTex = albedo.a;
-  float mask = smoothstep(0.9882, 0.9883, alphaTex) * (1.0 - smoothstep(0.9922, 0.9923, alphaTex));
+  float lower = smoothstep(0.9881, 0.9882, alphaTex);
+  float upper = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
+  float mask = lower * upper;
+
   vec3 baseRaw = albedo.rgb;
-  // 管线A：发光像素，完全无视环境光照，固定亮度
-  vec3 emissivePath = baseRaw * 1.0;
-  // 管线B：普通像素完整光照、描边、雾、调色
+  vec3 emissivePath = baseRaw * 1.2;
   vec3 litPath = baseRaw;
   litPath *= litPath * v_light.rgb;
   litPath *= nlEntityEdgeHighlight(v_edgemap);
   litPath = mix(litPath, v_fog.rgb, v_fog.a);
   litPath = colorCorrection(litPath);
-  // 二选一输出
   albedo.rgb = mix(litPath, emissivePath, mask);
   gl_FragColor = albedo;
 }
