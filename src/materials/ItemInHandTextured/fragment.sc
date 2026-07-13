@@ -27,15 +27,19 @@ void main() {
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // 发光判定 mask ≤253
+  // 严格限定：仅 252(0.9882) ~ 253(0.9922) 之间的像素发光
   float alphaTex = albedo.a;
-  float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
+  float mask = smoothstep(0.9881, 0.9882, alphaTex) * (1.0 - smoothstep(0.9922, 0.9923, alphaTex));
   vec3 baseRaw = albedo.rgb;
 
-  // 管线A：发光像素，完全无视环境光照，固定亮度
-  vec3 emissivePath = baseRaw * 1.0;
+  // 环境光衰减（保持白天不发光、暗处发光的方块逻辑）
+  float envAvg = dot(v_light.rgb, vec3(1.0)) / 3.0;
+  float glowFade = 1.0 - smoothstep(0.3, 0.6, envAvg);
 
-  // 管线B：普通像素完整光照、描边、雾、调色
+  // 发光强度（可改 1.2/1.5/1.8）
+  vec3 emissivePath = baseRaw * 1.0 * glowFade;
+
+  // 普通像素完整光照流程
   vec3 litPath = baseRaw;
   litPath *= litPath * v_light.rgb;
   litPath *= nlEntityEdgeHighlight(v_edgemap);
@@ -44,6 +48,5 @@ void main() {
 
   // 二选一输出
   albedo.rgb = mix(litPath, emissivePath, mask);
-
   gl_FragColor = albedo;
 }
