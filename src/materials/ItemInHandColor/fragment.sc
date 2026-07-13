@@ -25,25 +25,18 @@ void main() {
       discard;
     }
   #endif
-
-  // 严格限定：仅 v_color0.a = 252(≈0.9882) 发光
+  // 仅252(0.9882)触发发光，原版透明玻璃冰块不会命中
   float diff = v_color0.a - 0.9882;
-  float mask = smoothstep(-0.0001, 0.0001, diff);
+  float mask = 1.0 - smoothstep(-0.00005, 0.00005, diff);
   vec3 baseRaw = albedo.rgb;
-
-  // 环境光衰减
-  float envAvg = dot(v_light.rgb, vec3(1.0)) / 3.0;
-  float glowFade = 1.0 - smoothstep(0.3, 0.6, envAvg);
-
-  // 发光强度
-  vec3 emissivePath = baseRaw * 1.2 * glowFade;
-
-  // 普通像素光照流程
+  // 管线A：发光像素，完全不参与环境光照，固定亮度
+  vec3 emissivePath = baseRaw * 1.2;
+  // 管线B：普通像素，完整标准光照流程
   vec3 litPath = baseRaw;
   litPath *= litPath * v_light.rgb;
   litPath = mix(litPath, v_fog.rgb, v_fog.a);
   litPath = colorCorrection(litPath);
-
+  // 二选一输出，无if，编译安全
   albedo.rgb = mix(litPath, emissivePath, mask);
   gl_FragColor = albedo;
 }
