@@ -26,24 +26,22 @@ void main() {
     }
   #endif
 
-  vec3 rawBase = albedo.rgb;
-
-  // 标准光照流程
-  albedo.rgb *= albedo.rgb * v_light.rgb;
-  albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
-  albedo.rgb = colorCorrection(albedo.rgb);
-
-  // 环境光衰减，复刻方块效果
-  float envAvg = dot(v_light.rgb, vec3(1.0)) / 3.0;
-  float glowFade = 1.0 - smoothstep(0.3, 0.6, envAvg);
-
-  // 判定：v_color0.a ≤252发光
+  // 发光判定 mask
   float diff = v_color0.a - 0.99;
   float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  vec3 emissive = rawBase * 1.8 * glowFade * mask;
+  vec3 baseRaw = albedo.rgb;
 
-  // 加法叠加发光
-  albedo.rgb += emissive;
+  // 管线A：发光像素，完全不参与环境光照，固定亮度
+  vec3 emissivePath = baseRaw * 1.2;
+
+  // 管线B：普通像素，完整标准光照流程
+  vec3 litPath = baseRaw;
+  litPath *= litPath * v_light.rgb;
+  litPath = mix(litPath, v_fog.rgb, v_fog.a);
+  litPath = colorCorrection(litPath);
+
+  // 二选一输出，无if，编译安全
+  albedo.rgb = mix(litPath, emissivePath, mask);
 
   gl_FragColor = albedo;
 }
