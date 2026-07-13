@@ -27,22 +27,23 @@ void main() {
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // 保存原始贴图原色，生成不受光照影响的发光层
-  vec3 baseRaw = albedo.rgb;
-
-  // 标准光照、描边、雾、调色流程完整保留
-  albedo.rgb *= albedo.rgb * v_light.rgb;
-  albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
-  albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
-  albedo.rgb = colorCorrection(albedo.rgb);
-
-  // 判定逻辑不变：贴图alpha ≤0.9922(253)发光
+  // 发光判定 mask ≤253
   float alphaTex = albedo.a;
   float mask = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
-  // 独立恒定发光层，不参与环境光乘法
-  vec3 emissive = baseRaw * 1.8 * mask;
-  // 加法叠加，强光环境不会成倍爆亮
-  albedo.rgb += emissive;
+  vec3 baseRaw = albedo.rgb;
+
+  // 管线A：发光像素，完全无视环境光照，固定亮度
+  vec3 emissivePath = baseRaw * 1.8;
+
+  // 管线B：普通像素完整光照、描边、雾、调色
+  vec3 litPath = baseRaw;
+  litPath *= litPath * v_light.rgb;
+  litPath *= nlEntityEdgeHighlight(v_edgemap);
+  litPath = mix(litPath, v_fog.rgb, v_fog.a);
+  litPath = colorCorrection(litPath);
+
+  // 二选一输出
+  albedo.rgb = mix(litPath, emissivePath, mask);
 
   gl_FragColor = albedo;
 }

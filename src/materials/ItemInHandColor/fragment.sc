@@ -26,21 +26,22 @@ void main() {
     }
   #endif
 
-  // 先保存原始基础色，用于生成独立发光层
-  vec3 baseRaw = albedo.rgb;
-
-  // 完整正常光照流程（所有非发光像素标准渲染）
-  albedo.rgb *= albedo.rgb * v_light.rgb;
-  albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
-  albedo.rgb = colorCorrection(albedo.rgb);
-
-  // 发光判定（阈值不变：v_color0.a ≤0.99=252发光）
+  // 发光判定 mask
   float diff = v_color0.a - 0.99;
   float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  // 独立发光层：只用原始基础色，不乘环境光，固定亮度
-  vec3 emissive = baseRaw * 1.8 * mask;
-  // 加法叠加，不再乘法混合，解决强光过曝
-  albedo.rgb += emissive;
+  vec3 baseRaw = albedo.rgb;
+
+  // 管线A：发光像素，完全不参与环境光照，固定亮度
+  vec3 emissivePath = baseRaw * 1.8;
+
+  // 管线B：普通像素，完整标准光照流程
+  vec3 litPath = baseRaw;
+  litPath *= litPath * v_light.rgb;
+  litPath = mix(litPath, v_fog.rgb, v_fog.a);
+  litPath = colorCorrection(litPath);
+
+  // 二选一输出，无if，编译安全
+  albedo.rgb = mix(litPath, emissivePath, mask);
 
   gl_FragColor = albedo;
 }
