@@ -33,7 +33,7 @@ void main() {
   vec3 baseRaw = albedo.rgb;
 
   // 管线A：发光像素，完全无视环境光照，固定亮度
-  vec3 emissivePath = baseRaw * 1.2;
+  vec3 emissivePath = baseRaw * 1.0;
 
   // 管线B：普通像素完整光照、描边、雾、调色
   vec3 litPath = baseRaw;
