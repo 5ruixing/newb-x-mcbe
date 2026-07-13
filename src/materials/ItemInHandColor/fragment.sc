@@ -12,7 +12,7 @@ void main() {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     return;
   #endif
-  vec4 albedo = vec4(mix(vec3(1.0, 1.0, 1.0), v_color0.rgb, ColorBased.x), 1.0);
+  vec4 albedo = vec4(mix(vec3(1.0, 1.0), v_color0.rgb, ColorBased.x), 1.0);
   #ifdef MULTI_COLOR_TINT
     albedo = applyMultiColorChange(albedo, ChangeColor.rgb, MultiplicativeTintColor.rgb);
   #else
@@ -26,9 +26,9 @@ void main() {
     }
   #endif
 
-  // ✅ 修正后：仅 v_color0.a = 252(0.9882) 发光
-  float diff = v_color0.a - 0.9882;
-  float mask = smoothstep(-0.00005, 0.00005, diff);
+  // 稳定阈值：仅0.9880 ~ 0.9884（252附近）mask=1，其余0
+  float alphaVtx = v_color0.a;
+  float mask = step(0.9880, alphaVtx) * (1.0 - step(0.9884, alphaVtx));
 
   vec3 baseRaw = albedo.rgb;
   vec3 emissivePath = baseRaw * 1.2;
@@ -37,5 +37,6 @@ void main() {
   litPath = mix(litPath, v_fog.rgb, v_fog.a);
   litPath = colorCorrection(litPath);
   albedo.rgb = mix(litPath, emissivePath, mask);
+
   gl_FragColor = albedo;
 }
