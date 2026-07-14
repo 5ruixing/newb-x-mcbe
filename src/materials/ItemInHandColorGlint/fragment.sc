@@ -29,23 +29,21 @@ void main() {
     }
   #endif
 
-  // 【完全复制你稳定版的发光判定与分流逻辑】
+  // 保存原始基础色，用于自发光层
+  vec3 baseRaw = albedo.rgb;
+
+  // 原版完整附魔+光照流程（所有像素都会计算附魔条纹）
+  vec4 light = nlGlint(v_light, v_glintuv, s_GlintTexture, GlintColor, TileLightColor, albedo);
+  albedo.rgb *= albedo.rgb * light.rgb;
+  albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
+  albedo.rgb = colorCorrection(albedo.rgb);
+
+  // 完全复用你稳定版ItemInHandColor发光判定逻辑
   float diff = v_color0.a - 0.99;
   float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
-  vec3 baseRaw = albedo.rgb;
-  // 发光管线：不受环境光影响，固定亮度
-  vec3 emissivePath = baseRaw * 1.2;
-  // 普通管线：完整原版光照+附魔流程
-  vec3 litPath = baseRaw;
-
-  // 原版附魔+光照计算（只在普通管线执行，发光像素跳过环境/附魔光照）
-  vec4 light = nlGlint(v_light, v_glintuv, s_GlintTexture, GlintColor, TileLightColor, vec4(litPath,1.0));
-  litPath *= litPath * light.rgb;
-  litPath = mix(litPath, v_fog.rgb, v_fog.a);
-  litPath = colorCorrection(litPath);
-
-  // 二选一：发光像素直接用固定自发光，普通像素带附魔条纹
-  albedo.rgb = mix(litPath, emissivePath, mask);
+  // 固定亮度自发光层，加法叠加不覆盖原有附魔
+  vec3 emissive = baseRaw * 1.2 * mask;
+  albedo.rgb += emissive;
 
   gl_FragColor = albedo;
 }
