@@ -34,7 +34,7 @@ void main() {
   float mask = lower * upper;
 
   vec3 baseRaw = albedo.rgb;
-  vec3 emissivePath = baseRaw * 1.2;
+  vec3 emissivePath = baseRaw * 1.0;
   vec3 litPath = baseRaw;
   litPath *= litPath * v_light.rgb;
   litPath *= nlEntityEdgeHighlight(v_edgemap);
