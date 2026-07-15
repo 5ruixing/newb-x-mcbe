@@ -42,7 +42,7 @@ void main() {
   float diff = v_color0.a - 0.99;
   float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
   // 固定亮度自发光层，加法叠加不覆盖原有附魔
-  vec3 emissive = baseRaw * 1.2 * mask;
+  vec3 emissive = baseRaw * 1.0 * mask;
   albedo.rgb += emissive;
 
   gl_FragColor = albedo;
