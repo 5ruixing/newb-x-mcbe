@@ -25,7 +25,6 @@ void main() {
       discard;
     }
   #endif
-  // 发光判定 mask
   float diff = v_color0.a - 0.99;
   float mask = 1.0 - smoothstep(-0.0001, 0.0001, diff);
   vec3 baseRaw = albedo.rgb;
