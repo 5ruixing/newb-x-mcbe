@@ -26,13 +26,11 @@ void main() {
   #endif
   albedo.rgb *= mix(vec3_splat(1.0), v_color0.rgb, ColorBased.x);
   albedo = applyOverlayColor(albedo, OverlayColor);
-
   // ✅ 修正后：仅 252(0.9882) ~ 253(0.9922) 发光
   float alphaTex = albedo.a;
   float lower = smoothstep(0.9881, 0.9882, alphaTex);
   float upper = 1.0 - smoothstep(0.9922, 0.9923, alphaTex);
   float mask = lower * upper;
-
   vec3 baseRaw = albedo.rgb;
   vec3 emissivePath = baseRaw * 1.0;
   vec3 litPath = baseRaw;
